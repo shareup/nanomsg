@@ -94,6 +94,7 @@ func parseDate(_ string: String) -> Date? {
 nonisolated(unsafe) let isoFormatter: ISO8601DateFormatter = {
     let f = ISO8601DateFormatter()
     f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    f.timeZone = .current
     return f
 }()
 
