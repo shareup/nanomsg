@@ -22,6 +22,14 @@ nanomsg search --json "query" --from "Alice"
 nanomsg contacts --json
 ```
 
+### Attributing senders
+
+Every message has a `senderDisplayName` field — always present, `"You"` for
+outgoing, otherwise the resolved contact name (or raw handle). **Read it per
+message.** In group chats (`isGroup: true` on the chat/unread group) the chat's
+name is *not* the sender of any given message, so never attribute a message to
+the chat name — use each message's `senderDisplayName`.
+
 ## Write
 
 ```bash

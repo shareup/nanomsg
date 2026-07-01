@@ -105,11 +105,18 @@ func printUnreadText(_ groups: [UnreadGroup]) {
 
     for group in groups {
         let name = sanitize(group.chatName ?? group.participants.joined(separator: ", "))
-        print("── \(name)  (#\(group.chatId), \(group.messages.count) unread) ──")
+
+        var meta: [String] = ["#\(group.chatId)"]
+        if group.isGroup {
+            meta.append("group")
+        }
+        meta.append("\(group.messages.count) unread")
+
+        print("── \(name)  (\(meta.joined(separator: ", "))) ──")
         print()
 
         for msg in group.messages {
-            let sender = sanitize(msg.senderName ?? msg.sender ?? "Unknown")
+            let sender = sanitize(msg.senderDisplayName)
             let date = formatDate(msg.date)
             print("  \(sender)  \(date)")
             if let text = msg.text {

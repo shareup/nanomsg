@@ -75,11 +75,19 @@ nanomsg help chats
 
 Default output is human-readable text with relative dates ("Today at 10:30", "Yesterday at 18:00"). Use `--json` for structured JSON with ISO 8601 dates.
 
+### Message sender fields
+
+Each message carries three sender fields. In group chats the chat/display name is **not** the sender of any given message, so read the per-message fields to attribute a message correctly:
+
+- `sender` — the raw handle (phone number or email), or absent for your own messages
+- `senderName` — the resolved contact name, or absent when the handle isn't in Contacts
+- `senderDisplayName` — **always present**, unambiguous label: `"You"` for your own messages, otherwise the resolved contact name, falling back to the raw handle (then `"Unknown"`). Consumers that want one obvious per-message sender should read this.
+
 JSON shapes:
 
 - **chats**: `chatId`, `guid`, `displayName`, `participants`, `participantNames`, `lastMessageDate`, `lastMessageText`, `unreadCount`, `isGroup`, `recentMessages`
-- **history/search**: `rowid`, `guid`, `text`, `sender`, `senderName`, `isFromMe`, `date`, `isRead`, `reactions[]`, `attachments[]`, `threadOriginator`
-- **unread**: groups of `chatId`, `chatName`, `participants`, `messages[]`
+- **history/search**: `rowid`, `guid`, `text`, `sender`, `senderName`, `senderDisplayName`, `isFromMe`, `date`, `isRead`, `reactions[]`, `attachments[]`, `threadOriginator`
+- **unread**: groups of `chatId`, `chatName`, `isGroup`, `participants`, `messages[]` (each message has the history/search shape above)
 - **contacts**: `handleId`, `service`, `resolvedName`
 - **send**: `{"status": "sent", "text": "..."}`
 
