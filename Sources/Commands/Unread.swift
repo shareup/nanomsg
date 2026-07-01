@@ -3,6 +3,7 @@ import Foundation
 struct UnreadGroup: Encodable {
     let chatId: Int64
     let chatName: String?
+    let isGroup: Bool
     let participants: [String]
     let messages: [ChatDB.MessageInfo]
 }
@@ -24,6 +25,7 @@ func cmdUnread(db: ChatDB, resolver: ContactResolver?, args: ParsedArgs) {
         results.append(UnreadGroup(
             chatId: cid,
             chatName: resolvedName.isEmpty ? nil : resolvedName,
+            isGroup: db.chatIsGroup(chatId: cid),
             participants: participants.map { resolver?.resolve($0) ?? $0 },
             messages: resolved
         ))

@@ -92,7 +92,9 @@ nanomsg unread
 Check:
 - Shows at least 2 chat groups
 - Each group has a header with chat name, chat ID, and unread count
-- Messages are shown with sender and date
+- Group chats are marked `group` in the header (e.g., `(#207, group, 3 unread)`)
+- Each message is shown with its own sender and date — in a group chat the
+  per-message sender is the individual who sent it, not the chat/group name
 - The chats shown match what the user marked as unread
 
 ### 2c. JSON output
@@ -103,9 +105,11 @@ nanomsg unread --json
 
 Check:
 - Valid JSON array of objects
-- Each object has: chatId, participants (array), messages (array)
+- Each object has: chatId, isGroup (boolean), participants (array), messages (array)
 - chatName is present when non-null (omitted when null — normal Swift JSON behavior)
-- Messages have: rowid, text, sender, date, isFromMe (false for all)
+- Messages have: rowid, text, sender, senderName, senderDisplayName, date, isFromMe (false for all)
+- senderDisplayName is always present (never null); in group chats it names the
+  individual sender, which may differ from the chat's name
 
 ### 2d. Filter by chat
 
@@ -174,7 +178,9 @@ nanomsg history --chat-id <ID> --limit 3 --json
 
 Check:
 - Valid JSON array
-- Each message has: rowid, guid, text, sender, senderName, isFromMe, date, isRead
+- Each message has: rowid, guid, text, sender, senderName, senderDisplayName, isFromMe, date, isRead
+- senderDisplayName is always present ("You" for your own messages, otherwise the
+  resolved name or raw handle)
 - Reactions (if present) have: type, sender, senderName, date
 - Dates are ISO 8601
 

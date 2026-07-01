@@ -185,6 +185,42 @@ final class ChatDB: @unchecked Sendable {
         let attachments: [AttachmentInfo]?
         let replyToGuid: String?
         let threadOriginator: String?
+
+        /// Always-present, unambiguous label for who sent this message:
+        /// "You" for outgoing messages, the resolved contact name when known,
+        /// otherwise the raw handle, falling back to "Unknown". Consumers that
+        /// want a single obvious per-message sender field should read this — it
+        /// is never null and is never the group/chat name.
+        var senderDisplayName: String {
+            if isFromMe { return "You" }
+            return senderName ?? sender ?? "Unknown"
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case rowid, guid, text, sender, senderName, senderDisplayName
+            case isFromMe, date, isRead, reactions, attachments
+            case replyToGuid, threadOriginator
+        }
+
+        // Explicit encoding so `senderDisplayName` (a computed property) is
+        // included in JSON. Optionals use encodeIfPresent to preserve the
+        // existing "omit when null" behavior.
+        func encode(to encoder: Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            try c.encode(rowid, forKey: .rowid)
+            try c.encode(guid, forKey: .guid)
+            try c.encodeIfPresent(text, forKey: .text)
+            try c.encodeIfPresent(sender, forKey: .sender)
+            try c.encodeIfPresent(senderName, forKey: .senderName)
+            try c.encode(senderDisplayName, forKey: .senderDisplayName)
+            try c.encode(isFromMe, forKey: .isFromMe)
+            try c.encode(date, forKey: .date)
+            try c.encode(isRead, forKey: .isRead)
+            try c.encodeIfPresent(reactions, forKey: .reactions)
+            try c.encodeIfPresent(attachments, forKey: .attachments)
+            try c.encodeIfPresent(replyToGuid, forKey: .replyToGuid)
+            try c.encodeIfPresent(threadOriginator, forKey: .threadOriginator)
+        }
     }
 
     struct ReactionInfo: Encodable {
@@ -496,6 +532,13 @@ final class ChatDB: @unchecked Sendable {
     func chatGuid(chatId: Int64) -> String? {
         let rows = query("SELECT guid FROM chat WHERE ROWID = ?", params: [chatId])
         return rows.first?["guid"] as? String
+    }
+
+    /// Whether a chat is a group conversation (Apple `chat.style` == 43),
+    /// as opposed to a 1:1 (style 45). Same rule `listChats` uses.
+    func chatIsGroup(chatId: Int64) -> Bool {
+        let rows = query("SELECT style FROM chat WHERE ROWID = ?", params: [chatId])
+        return (rows.first?["style"] as? Int64) == 43
     }
 
     func chatParticipants(chatId: Int64) -> [String] {
